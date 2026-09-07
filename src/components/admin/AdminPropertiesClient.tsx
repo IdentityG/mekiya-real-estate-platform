@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Plus, Search, Star, Pencil, ExternalLink, X, CheckSquare, Square } from "lucide-react";
 import { formatPrice, getStatusColor, getPropertyTypeLabel } from "@/lib/utils";
+import { ImageUploader } from "./ImageUploader";
 
 interface Property {
   id: number; title: string; slug: string; propertyType: string;
@@ -38,6 +39,18 @@ export function AdminPropertiesClient({ properties, agents, hoods, allAmenities 
   const [selected, setSelected] = useState<number[]>([]);
   const [modal, setModal] = useState<{ mode: "add" } | { mode: "edit"; property: Property } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+
+  // Initialize uploaded images when modal opens
+  useEffect(() => {
+    if (modal) {
+      if (modal.mode === "edit" && modal.property.media) {
+        setUploadedImages(modal.property.media);
+      } else {
+        setUploadedImages([]);
+      }
+    }
+  }, [modal]);
 
   const filtered = useMemo(() => {
     return properties.filter((p) => {
@@ -77,7 +90,6 @@ export function AdminPropertiesClient({ properties, agents, hoods, allAmenities 
     if (!modal) return;
     setSaving(true);
     const form = new FormData(e.currentTarget);
-    const mediaRaw = String(form.get("media") || "");
     const payload = {
       title: form.get("title"),
       propertyType: form.get("propertyType"),
@@ -96,7 +108,7 @@ export function AdminPropertiesClient({ properties, agents, hoods, allAmenities 
       address: form.get("address") || null,
       description: form.get("description") || null,
       amenities: (form.getAll("amenities") as string[]).filter(Boolean),
-      media: mediaRaw ? mediaRaw.split(/[\n,]/).map((s) => s.trim()).filter(Boolean) : [],
+      media: uploadedImages, // Use uploaded images from state
       metaTitle: form.get("metaTitle") || null,
       metaDescription: form.get("metaDescription") || null,
       agentId: form.get("agentId") ? Number(form.get("agentId")) : undefined,
@@ -121,6 +133,7 @@ export function AdminPropertiesClient({ properties, agents, hoods, allAmenities 
     }
     setSaving(false);
     setModal(null);
+    setUploadedImages([]);
     router.refresh();
   }
 
@@ -380,8 +393,11 @@ export function AdminPropertiesClient({ properties, agents, hoods, allAmenities 
                 {/* Media */}
                 <div>
                   <p className="text-[11px] font-body font-bold uppercase tracking-[0.16em] text-brass mb-3">Media</p>
-                  <label className={labelCls}>Image URLs (one per line or comma-separated)</label>
-                  <textarea name="media" rows={3} defaultValue={modal.mode === "edit" ? (modal.property.media ?? []).join("\n") : ""} placeholder={"/images/prop-apartment.jpg"} className={`${inputCls} resize-none`} />
+                  <ImageUploader
+                    propertyId={modal.mode === "edit" ? modal.property.id : undefined}
+                    existingImages={uploadedImages}
+                    onImagesChange={setUploadedImages}
+                  />
                 </div>
 
                 {/* SEO + toggles */}
