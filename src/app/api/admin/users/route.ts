@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
         phone: body.phone || null,
         specialty: body.specialty || null,
         bio: body.bio || null,
+        avatarUrl: body.avatarUrl || null,
       })
       .returning({
         id: users.id,
@@ -84,9 +85,11 @@ export async function PUT(req: NextRequest) {
 
     const update: Record<string, unknown> = {};
     if (body.name) update.name = body.name;
+    if (body.email) update.email = body.email;
     if (body.phone !== undefined) update.phone = body.phone || null;
     if (body.specialty !== undefined) update.specialty = body.specialty || null;
     if (body.bio !== undefined) update.bio = body.bio || null;
+    if (body.avatarUrl !== undefined) update.avatarUrl = body.avatarUrl || null;
     if (body.role && body.role !== "super_admin") update.role = body.role;
     update.updatedAt = new Date();
 

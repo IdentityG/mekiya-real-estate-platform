@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { UserPlus, X, ShieldCheck, UserRound } from "lucide-react";
+import { UserPlus, X, ShieldCheck, UserRound, Pencil } from "lucide-react";
+import { ImageUploader } from "./ImageUploader";
 
 interface Member {
   id: number;
@@ -16,6 +17,7 @@ interface Member {
   createdAt: Date;
   listingCount: number;
   leadCount: number;
+  avatarUrl: string | null;
 }
 
 interface Props {
@@ -34,9 +36,21 @@ const labelCls = "block text-[10px] font-body font-bold uppercase tracking-[0.14
 
 export function AdminAgentsClient({ team, canManage }: Props) {
   const router = useRouter();
-  const [addOpen, setAddOpen] = useState(false);
+  const [modal, setModal] = useState<{ mode: "add" } | { mode: "edit"; member: Member } | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [uploadedAvatar, setUploadedAvatar] = useState<string[]>([]);
+
+  // Initialize avatar when modal opens
+  useEffect(() => {
+    if (modal) {
+      if (modal.mode === "edit" && modal.member.avatarUrl) {
+        setUploadedAvatar([modal.member.avatarUrl]);
+      } else {
+        setUploadedAvatar([]);
+      }
+    }
+  }, [modal]);
 
   async function updateRole(id: number, role: string) {
     await fetch("/api/admin/users", {
@@ -47,31 +61,45 @@ export function AdminAgentsClient({ team, canManage }: Props) {
     router.refresh();
   }
 
-  async function addMember(e: React.FormEvent<HTMLFormElement>) {
+  async function saveForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!modal) return;
     setSaving(true);
     setError("");
     const form = new FormData(e.currentTarget);
-    const res = await fetch("/api/admin/users", {
-      method: "POST",
+    
+    const payload = {
+      name: form.get("name"),
+      email: form.get("email"),
+      role: form.get("role"),
+      phone: form.get("phone") || null,
+      specialty: form.get("specialty") || null,
+      bio: form.get("bio") || null,
+      avatarUrl: uploadedAvatar[0] || null,
+      ...(modal.mode === "add" && { password: form.get("password") }),
+    };
+
+    const url = "/api/admin/users";
+    const method = modal.mode === "add" ? "POST" : "PUT";
+    const body = modal.mode === "edit" 
+      ? JSON.stringify({ id: modal.member.id, ...payload })
+      : JSON.stringify(payload);
+
+    const res = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: form.get("name"),
-        email: form.get("email"),
-        password: form.get("password"),
-        role: form.get("role"),
-        phone: form.get("phone"),
-        specialty: form.get("specialty"),
-      }),
+      body,
     });
+
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setError(body.error || "Failed to add team member");
+      setError(body.error || `Failed to ${modal.mode === "add" ? "add" : "update"} team member`);
       setSaving(false);
       return;
     }
     setSaving(false);
-    setAddOpen(false);
+    setModal(null);
+    setUploadedAvatar([]);
     router.refresh();
   }
 
@@ -84,7 +112,7 @@ export function AdminAgentsClient({ team, canManage }: Props) {
         </div>
         {canManage && (
           <button
-            onClick={() => setAddOpen(true)}
+            onClick={() => setModal({ mode: "add" })}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-ink text-white text-[13px] font-body font-bold rounded-full hover:bg-graphite transition-colors"
           >
             <UserPlus className="w-4 h-4" strokeWidth={2} /> Add Team Member
@@ -135,17 +163,25 @@ export function AdminAgentsClient({ team, canManage }: Props) {
                 </p>
               </div>
 
-              {/* Role management */}
-              {canManage && m.role !== "super_admin" && (
-                <div className="px-5 pb-5">
-                  <select
-                    value={m.role}
-                    onChange={(e) => updateRole(m.id, e.target.value)}
-                    className="w-full px-3 py-2 bg-linen border border-ink/[0.1] rounded-lg text-[12px] font-body text-graphite focus:outline-none focus:border-brass cursor-pointer"
+              {/* Actions */}
+              {canManage && (
+                <div className="px-5 pb-5 flex gap-2">
+                  <button
+                    onClick={() => setModal({ mode: "edit", member: m })}
+                    className="flex-1 py-2 px-3 border border-ink/[0.1] text-[12px] font-body font-semibold text-graphite rounded-lg hover:border-brass hover:text-brass transition-colors flex items-center justify-center gap-2"
                   >
-                    <option value="agent">Agent</option>
-                    <option value="sales_manager">Sales Manager</option>
-                  </select>
+                    <Pencil className="w-3.5 h-3.5" strokeWidth={1.8} /> Edit Details
+                  </button>
+                  {m.role !== "super_admin" && (
+                    <select
+                      value={m.role}
+                      onChange={(e) => updateRole(m.id, e.target.value)}
+                      className="px-3 py-2 bg-linen border border-ink/[0.1] rounded-lg text-[12px] font-body text-graphite focus:outline-none focus:border-brass cursor-pointer"
+                    >
+                      <option value="agent">Agent</option>
+                      <option value="sales_manager">Manager</option>
+                    </select>
+                  )}
                 </div>
               )}
               {m.role === "super_admin" && (
@@ -158,65 +194,137 @@ export function AdminAgentsClient({ team, canManage }: Props) {
         })}
       </div>
 
-      {/* Add member modal */}
+      {/* Add / Edit member modal */}
       <AnimatePresence>
-        {addOpen && (
+        {modal && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setAddOpen(false)}
+              onClick={() => setModal(null)}
               className="fixed inset-0 z-50 bg-ink/60 backdrop-blur-sm"
             />
             <motion.div
               initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 24 }}
-              className="fixed inset-x-0 top-0 bottom-0 z-50 m-auto w-full max-w-md h-fit bg-white"
+              className="fixed inset-x-0 top-0 bottom-0 z-50 m-auto w-full max-w-2xl h-[90vh] bg-white flex flex-col"
             >
-              <div className="flex items-center justify-between px-6 py-4 border-b border-ink/[0.08]">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-ink/[0.08] shrink-0">
                 <h3 className="text-[15px] font-body font-bold text-ink flex items-center gap-2">
-                  <UserRound className="w-4 h-4 text-brass" strokeWidth={1.8} /> Add Team Member
+                  <UserRound className="w-4 h-4 text-brass" strokeWidth={1.8} /> 
+                  {modal.mode === "add" ? "Add Team Member" : `Edit — ${modal.member.name}`}
                 </h3>
-                <button onClick={() => setAddOpen(false)} aria-label="Close" className="w-9 h-9 rounded-lg border border-ink/10 flex items-center justify-center hover:bg-linen transition-colors">
+                <button onClick={() => setModal(null)} aria-label="Close" className="w-9 h-9 rounded-lg border border-ink/10 flex items-center justify-center hover:bg-linen transition-colors">
                   <X className="w-4 h-4" strokeWidth={1.8} />
                 </button>
               </div>
 
-              <form onSubmit={addMember} className="p-6 space-y-4">
+              <form onSubmit={saveForm} className="flex-1 overflow-y-auto px-6 py-5 space-y-5" id="agent-form">
+                {/* Basic Info */}
                 <div>
-                  <label className={labelCls}>Full name *</label>
-                  <input name="name" required className={inputCls} placeholder="e.g. Sara Haile" />
-                </div>
-                <div>
-                  <label className={labelCls}>Email *</label>
-                  <input name="email" type="email" required className={inputCls} placeholder="name@mekiya.com" />
-                </div>
-                <div>
-                  <label className={labelCls}>Temporary password *</label>
-                  <input name="password" type="password" required minLength={6} className={inputCls} placeholder="Min. 6 characters" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className={labelCls}>Role</label>
-                    <select name="role" className={inputCls}>
-                      <option value="agent">Agent</option>
-                      <option value="sales_manager">Sales Manager</option>
-                    </select>
+                  <p className="text-[11px] font-body font-bold uppercase tracking-[0.16em] text-brass mb-3">Basic Information</p>
+                  <div className="space-y-3">
+                    <div>
+                      <label className={labelCls}>Full name *</label>
+                      <input 
+                        name="name" 
+                        required 
+                        defaultValue={modal.mode === "edit" ? modal.member.name : ""}
+                        className={inputCls} 
+                        placeholder="e.g. Sara Haile" 
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Email *</label>
+                      <input 
+                        name="email" 
+                        type="email" 
+                        required 
+                        defaultValue={modal.mode === "edit" ? modal.member.email : ""}
+                        className={inputCls} 
+                        placeholder="name@mekiya.com" 
+                      />
+                    </div>
+                    {modal.mode === "add" && (
+                      <div>
+                        <label className={labelCls}>Temporary password *</label>
+                        <input name="password" type="password" required minLength={6} className={inputCls} placeholder="Min. 6 characters" />
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={labelCls}>Role</label>
+                        <select 
+                          name="role" 
+                          defaultValue={modal.mode === "edit" ? modal.member.role : "agent"}
+                          className={inputCls}
+                        >
+                          <option value="agent">Agent</option>
+                          <option value="sales_manager">Sales Manager</option>
+                          {modal.mode === "edit" && modal.member.role === "super_admin" && (
+                            <option value="super_admin">Super Admin</option>
+                          )}
+                        </select>
+                      </div>
+                      <div>
+                        <label className={labelCls}>Phone</label>
+                        <input 
+                          name="phone" 
+                          defaultValue={modal.mode === "edit" ? (modal.member.phone ?? "") : ""}
+                          className={inputCls} 
+                          placeholder="+251…" 
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className={labelCls}>Specialty</label>
-                    <input name="specialty" className={inputCls} placeholder="Apartments" />
-                  </div>
-                </div>
-                <div>
-                  <label className={labelCls}>Phone</label>
-                  <input name="phone" className={inputCls} placeholder="+251…" />
                 </div>
 
-                {error && <p className="text-red-500 text-[12.5px] font-body">{error}</p>}
+                {/* Professional Info */}
+                <div>
+                  <p className="text-[11px] font-body font-bold uppercase tracking-[0.16em] text-brass mb-3">Professional Details</p>
+                  <div className="space-y-3">
+                    <div>
+                      <label className={labelCls}>Specialty</label>
+                      <input 
+                        name="specialty" 
+                        defaultValue={modal.mode === "edit" ? (modal.member.specialty ?? "") : ""}
+                        className={inputCls} 
+                        placeholder="e.g. Commercial Properties, Luxury Apartments" 
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Bio</label>
+                      <textarea 
+                        name="bio" 
+                        rows={4} 
+                        defaultValue={modal.mode === "edit" ? (modal.member.bio ?? "") : ""}
+                        className={`${inputCls} resize-none`} 
+                        placeholder="Tell us about this agent's experience and expertise..." 
+                      />
+                    </div>
+                  </div>
+                </div>
 
-                <button type="submit" disabled={saving}
-                  className="w-full py-3 bg-ink text-white text-[13px] font-body font-bold rounded-full hover:bg-graphite transition-colors disabled:opacity-60">
-                  {saving ? "Creating…" : "Create Account"}
-                </button>
+                {/* Avatar */}
+                <div>
+                  <p className="text-[11px] font-body font-bold uppercase tracking-[0.16em] text-brass mb-3">Profile Photo</p>
+                  <ImageUploader
+                    existingImages={uploadedAvatar}
+                    onImagesChange={(images) => setUploadedAvatar(images.slice(0, 1))}
+                  />
+                  <p className="text-[11px] font-body text-stone-400 mt-2">Upload one profile photo (square format recommended)</p>
+                </div>
+
+                {error && <div className="p-4 bg-red-50 border border-red-200 text-red-600 text-[12.5px] font-body rounded-lg">{error}</div>}
               </form>
+
+              <div className="px-6 py-4 border-t border-ink/[0.08] flex gap-3 shrink-0">
+                <button type="submit" form="agent-form" disabled={saving}
+                  className="flex-1 py-3 bg-ink text-white text-[13px] font-body font-bold rounded-full hover:bg-graphite transition-colors disabled:opacity-60">
+                  {saving ? "Saving…" : modal.mode === "add" ? "Create Account" : "Save Changes"}
+                </button>
+                <button type="button" onClick={() => setModal(null)}
+                  className="px-6 py-3 border border-ink/10 text-[13px] font-body font-semibold text-graphite rounded-full hover:bg-linen transition-colors">
+                  Cancel
+                </button>
+              </div>
             </motion.div>
           </>
         )}

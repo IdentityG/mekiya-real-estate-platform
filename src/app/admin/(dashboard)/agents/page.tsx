@@ -12,6 +12,7 @@ export default async function AdminAgentsPage() {
     .select({
       id: users.id, name: users.name, email: users.email, role: users.role,
       phone: users.phone, specialty: users.specialty, bio: users.bio,
+      avatarUrl: users.avatarUrl,
       createdAt: users.createdAt,
     })
     .from(users)

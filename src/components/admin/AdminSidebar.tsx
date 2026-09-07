@@ -29,6 +29,12 @@ const groups = [
     ],
   },
   {
+    label: "Configuration",
+    items: [
+      { href: "/admin/property-types", label: "Property Types", icon: Settings },
+    ],
+  },
+  {
     label: "Finance",
     items: [{ href: "/admin/transactions", label: "Payments", icon: Wallet }],
   },
