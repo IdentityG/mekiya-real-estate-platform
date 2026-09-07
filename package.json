@@ -16,6 +16,7 @@
     "db:apply-rls": "tsx scripts/apply-rls.ts",
     "db:check": "tsx scripts/check-connection.ts",
     "db:verify": "tsx scripts/verify-data.ts",
+    "db:cleanup-images": "tsx scripts/cleanup-images.ts",
     "db:setup": "pnpm db:push && pnpm db:apply-rls && pnpm db:seed"
   },
   "dependencies": {

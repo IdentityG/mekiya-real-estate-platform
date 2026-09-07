@@ -15,16 +15,29 @@ interface Property {
   furnished: boolean | null; views: number | null; media: string[] | null;
 }
 
+interface PropertyType {
+  id: number;
+  value: string;
+  label: string;
+  imageUrl: string | null;
+  icon: string | null;
+  color: string | null;
+}
+
 interface Props {
   properties: Property[];
   neighborhoods: string[];
   amenities: string[];
+  propertyTypes?: PropertyType[];
 }
 
-const TYPES = ["apartment", "commercial"] as const;
-
-export function PropertiesClient({ properties, neighborhoods, amenities }: Props) {
+export function PropertiesClient({ properties, neighborhoods, amenities, propertyTypes = [] }: Props) {
   const searchParams = useSearchParams();
+
+  // Use database property types or fallback to unique types from properties
+  const TYPES = propertyTypes.length > 0
+    ? propertyTypes.map(pt => pt.value)
+    : Array.from(new Set(properties.map(p => p.propertyType)));
 
   // Filter state
   const [q, setQ] = useState(searchParams.get("q") || "");
@@ -116,16 +129,24 @@ export function PropertiesClient({ properties, neighborhoods, amenities }: Props
       {/* Property types */}
       <div>
         <p className="text-[11px] font-body font-bold uppercase tracking-[0.15em] text-stone-400 mb-3">Property Type</p>
-        <div className="space-y-1">
-          {TYPES.map((t) => (
-            <label key={t} className="flex items-center gap-3 py-1.5 cursor-pointer group">
-              <span className={`w-4 h-4 border flex items-center justify-center transition-colors ${selectedTypes.includes(t) ? "bg-brass border-brass" : "border-ink/20 group-hover:border-brass"}`}>
-                {selectedTypes.includes(t) && <svg className="w-3 h-3 text-ink" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
-              </span>
-              <span className="text-sm font-body text-graphite capitalize group-hover:text-ink">{t}</span>
-              <span className="ml-auto text-[11px] text-stone-400 font-body">{properties.filter((p) => p.propertyType === t).length}</span>
-            </label>
-          ))}
+        <div className="space-y-2">
+          {TYPES.map((t) => {
+            const typeData = propertyTypes.find(pt => pt.value === t);
+            return (
+              <label key={t} className="flex items-center gap-3 py-1.5 cursor-pointer group">
+                <span className={`w-4 h-4 border flex items-center justify-center transition-colors ${selectedTypes.includes(t) ? "bg-brass border-brass" : "border-ink/20 group-hover:border-brass"}`}>
+                  {selectedTypes.includes(t) && <svg className="w-3 h-3 text-ink" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                </span>
+                {typeData?.imageUrl && (
+                  <img src={typeData.imageUrl} alt={typeData.label} className="w-8 h-8 object-cover border border-ink/10" />
+                )}
+                <span className="text-sm font-body text-graphite capitalize group-hover:text-ink">
+                  {typeData?.label || t}
+                </span>
+                <span className="ml-auto text-[11px] text-stone-400 font-body">{properties.filter((p) => p.propertyType === t).length}</span>
+              </label>
+            );
+          })}
         </div>
       </div>
 

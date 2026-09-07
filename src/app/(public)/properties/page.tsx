@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { properties, neighborhoods } from "@/db/schema";
+import { properties, neighborhoods, propertyTypes } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { Suspense } from "react";
 import { PropertiesClient } from "@/components/public/properties/PropertiesClient";
@@ -12,6 +12,12 @@ export default async function PropertiesPage() {
     .orderBy(desc(properties.featured), desc(properties.createdAt));
 
   const hoods = await db.select().from(neighborhoods);
+  
+  const types = await db
+    .select()
+    .from(propertyTypes)
+    .where(eq(propertyTypes.isActive, true))
+    .orderBy(propertyTypes.sortOrder, propertyTypes.label);
 
   const allAmenities = Array.from(
     new Set(allProperties.flatMap((p) => (Array.isArray(p.amenities) ? p.amenities : [])))
@@ -33,6 +39,7 @@ export default async function PropertiesPage() {
         properties={allProperties}
         neighborhoods={hoods.map((h) => h.name)}
         amenities={allAmenities}
+        propertyTypes={types}
       />
     </Suspense>
   );
