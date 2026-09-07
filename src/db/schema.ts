@@ -183,3 +183,17 @@ export const siteSettings = pgTable("site_settings", {
   value: text("value").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const propertyTypes = pgTable("property_types", {
+  id: serial("id").primaryKey(),
+  value: varchar("value", { length: 50 }).notNull().unique(),
+  label: varchar("label", { length: 100 }).notNull(),
+  description: text("description"),
+  icon: varchar("icon", { length: 50 }).default("Building2"),
+  imageUrl: text("image_url"),
+  color: varchar("color", { length: 20 }).default("#C4A96B"),
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
