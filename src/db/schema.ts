@@ -176,6 +176,10 @@ export const neighborhoods = pgTable("neighborhoods", {
   block: varchar("block", { length: 255 }),
   lat: doublePrecision("lat"),
   lng: doublePrecision("lng"),
+  featured: boolean("featured").default(false),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const siteSettings = pgTable("site_settings", {

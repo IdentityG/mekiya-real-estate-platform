@@ -31,6 +31,7 @@ const groups = [
   {
     label: "Configuration",
     items: [
+      { href: "/admin/neighborhoods", label: "Neighborhoods", icon: Building2 },
       { href: "/admin/property-types", label: "Property Types", icon: Settings },
     ],
   },
