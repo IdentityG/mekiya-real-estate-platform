@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
+import { IMG } from "@/lib/images";
 
 interface Props {
   testimonials: Array<{
@@ -10,7 +11,7 @@ interface Props {
   }>;
 }
 
-const faces = ["/images/prop-penthouse.jpg", "/images/prop-villa.jpg", "/images/about-office.jpg", "/images/prop-apartment.jpg"];
+const faces = [IMG.penthouse, IMG.villa, IMG.aboutOffice, IMG.apartment];
 
 export function TestimonialSection({ testimonials }: Props) {
   const [i, setI] = useState(0);

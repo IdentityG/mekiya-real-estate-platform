@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { IMG } from "@/lib/images";
 
 interface Agent {
   id: number;
@@ -19,7 +20,7 @@ interface Props {
   stats: { activeListings: number; testimonials: number; totalListings: number };
 }
 
-const agentImgs = ["/images/prop-penthouse.jpg", "/images/prop-apartment.jpg", "/images/prop-commercial.jpg", "/images/prop-villa.jpg", "/images/about-office.jpg"];
+const agentImgs = [IMG.penthouse, IMG.apartment, IMG.commercial, IMG.villa, IMG.aboutOffice];
 
 const values = [
   { icon: "🔍", title: "Verify, then publish", desc: "No listing goes live until our team has walked it and confirmed the title. If we can't verify it, we don't sell it." },
@@ -53,7 +54,7 @@ export function AboutClient({ agents, stats }: Props) {
       {/* ===== HERO ===== */}
       <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 bg-ink overflow-hidden">
         <div className="absolute inset-0 opacity-35">
-          <Image src="/images/about-office.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
+          <Image src={IMG.aboutOffice} alt="" fill priority sizes="100vw" className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/92 to-ink/65" />
         </div>
         <div className="absolute top-10 right-0 w-80 h-80 rounded-full bg-brass/12 blur-3xl animate-pulse" />
@@ -264,7 +265,7 @@ export function AboutClient({ agents, stats }: Props) {
         <div className="max-w-4xl mx-auto px-6 lg:px-10 py-20 lg:py-24 text-center relative">
           <div className="flex items-center justify-center gap-3 mb-8">
             <span className="flex -space-x-2">
-              {["/images/prop-villa.jpg", "/images/prop-apartment.jpg", "/images/about-office.jpg"].map((src) => (
+              {[IMG.villa, IMG.apartment, IMG.aboutOffice].map((src, i) => (
                 <span key={src} className="relative w-9 h-9 rounded-full overflow-hidden border-2 border-ink">
                   <Image src={src} alt="" fill sizes="36px" className="object-cover" />
                 </span>

@@ -5,10 +5,30 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { HERO_VIDEO } from "@/lib/media";
+import { formatPrice } from "@/lib/utils";
+import { IMG } from "@/lib/images";
 
 const quickHoods = ["CMC Block 8", "CMC Block 9", "CMC Block 10", "Bole Atlas", "Sarbet"];
 
-export function HeroSection() {
+interface FeaturedProperty {
+  id: number;
+  title: string;
+  slug: string;
+  price: number;
+  currency: string;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  size: number | null;
+  neighborhood: string | null;
+  address: string | null;
+  media: string[] | null;
+}
+
+interface Props {
+  featuredProperty?: FeaturedProperty | null;
+}
+
+export function HeroSection({ featuredProperty }: Props) {
   const [mode, setMode] = useState<"sale" | "rent">("sale");
   const [q, setQ] = useState("");
   const [type, setType] = useState("");
@@ -20,7 +40,7 @@ export function HeroSection() {
     <section className="relative min-h-[100svh] flex items-center overflow-hidden bg-ink">
       {/* Background */}
       <div className="absolute inset-0">
-        <Image src="/images/hero-main.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
+        <Image src={IMG.heroMain} alt="" fill priority sizes="100vw" className="object-cover" />
         <video
           autoPlay muted loop playsInline
           onCanPlay={() => setVideoReady(true)}
@@ -135,47 +155,66 @@ export function HeroSection() {
           </div>
 
           {/* Right — floating preview card */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.9, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="hidden lg:block lg:col-span-5"
-          >
-            <div className="relative ml-auto max-w-sm">
-              <div className="absolute -top-4 -left-4 w-full h-full border border-brass/25 rounded-2xl" />
-              <div className="relative rounded-2xl overflow-hidden bg-white/[0.06] border border-white/12 backdrop-blur-xl">
-                <div className="relative h-52">
-                  <Image src="/images/prop-penthouse.jpg" alt="Featured property" fill sizes="400px" className="object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink/80 to-transparent" />
-                  <span className="absolute top-3 left-3 px-2.5 py-1 bg-brass text-ink text-[10px] font-body font-bold uppercase tracking-[0.12em]">
-                    Featured
-                  </span>
-                </div>
-                <div className="p-5">
-                  <p className="font-display text-white text-xl tracking-tight">Luxury Penthouse, Bole</p>
-                  <p className="text-white/40 text-xs font-body mt-1">Bole Atlas · Near Friendship Park</p>
-                  <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/10 text-white/60 text-xs font-body">
-                    <span>4 bd</span><span>3 ba</span><span>280 m²</span>
-                    <span className="ml-auto text-brass font-bold text-sm">25M ETB</span>
+          {featuredProperty && (
+            <motion.div
+              initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.9, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="hidden lg:block lg:col-span-5"
+            >
+              <Link href={`/properties/${featuredProperty.slug}`} className="block relative ml-auto max-w-sm group">
+                <div className="absolute -top-4 -left-4 w-full h-full border border-brass/25 rounded-2xl group-hover:border-brass/50 transition-colors" />
+                <div className="relative rounded-2xl overflow-hidden bg-white/[0.06] border border-white/12 backdrop-blur-xl group-hover:border-white/25 transition-colors">
+                  <div className="relative h-52">
+                    <Image 
+                      src={featuredProperty.media?.[0] || "https://images.pexels.com/photos/2119714/pexels-photo-2119714.jpeg?auto=compress&cs=tinysrgb&w=800"} 
+                      alt={featuredProperty.title} 
+                      fill 
+                      sizes="400px" 
+                      className="object-cover group-hover:scale-105 transition-transform duration-700" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-ink/80 to-transparent" />
+                    <span className="absolute top-3 left-3 px-2.5 py-1 bg-brass text-ink text-[10px] font-body font-bold uppercase tracking-[0.12em]">
+                      Featured
+                    </span>
+                  </div>
+                  <div className="p-5">
+                    <p className="font-display text-white text-xl tracking-tight line-clamp-1">{featuredProperty.title}</p>
+                    <p className="text-white/40 text-xs font-body mt-1 line-clamp-1">
+                      {featuredProperty.neighborhood && `${featuredProperty.neighborhood} · `}
+                      {featuredProperty.address || "Premium location"}
+                    </p>
+                    <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/10 text-white/60 text-xs font-body">
+                      {featuredProperty.bedrooms && <span>{featuredProperty.bedrooms} bd</span>}
+                      {featuredProperty.bathrooms && <span>{featuredProperty.bathrooms} ba</span>}
+                      {featuredProperty.size && <span>{featuredProperty.size} m²</span>}
+                      <span className="ml-auto text-brass font-bold text-sm">
+                        {formatPrice(featuredProperty.price, featuredProperty.currency)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Rating pill */}
-              <div className="absolute -bottom-5 -left-5 flex items-center gap-3 px-4 py-3 rounded-xl bg-linen shadow-xl">
-                <div className="flex -space-x-2">
-                  {["/images/prop-villa.jpg", "/images/prop-apartment.jpg", "/images/about-office.jpg"].map((src) => (
-                    <span key={src} className="relative w-7 h-7 rounded-full overflow-hidden border-2 border-linen">
-                      <Image src={src} alt="" fill sizes="28px" className="object-cover" />
-                    </span>
-                  ))}
+                {/* Rating pill */}
+                <div className="absolute -bottom-5 -left-5 flex items-center gap-3 px-4 py-3 rounded-xl bg-linen shadow-xl">
+                  <div className="flex -space-x-2">
+                    {(featuredProperty.media?.slice(1, 4) || [
+                      "https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=100",
+                      "https://images.pexels.com/photos/2119714/pexels-photo-2119714.jpeg?auto=compress&cs=tinysrgb&w=100",
+                      "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=100"
+                    ]).map((src, i) => (
+                      <span key={i} className="relative w-7 h-7 rounded-full overflow-hidden border-2 border-linen">
+                        <Image src={src} alt="" fill sizes="28px" className="object-cover" />
+                      </span>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="text-ink text-xs font-body font-bold">2,000+ clients</p>
+                    <p className="text-brass text-[10px] font-body">★★★★★ 4.9 rating</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-ink text-xs font-body font-bold">2,000+ clients</p>
-                  <p className="text-brass text-[10px] font-body">★★★★★ 4.9 rating</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+              </Link>
+            </motion.div>
+          )}
         </div>
       </div>
 

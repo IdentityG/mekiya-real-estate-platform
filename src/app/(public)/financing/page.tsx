@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHero } from "@/components/public/PageHero";
 import { PaymentCalculator } from "@/components/public/properties/PaymentCalculator";
+import { IMG } from "@/lib/images";
 
 export const metadata = { title: "Mortgage & Financing — Mekiya Real Estate" };
 
@@ -36,7 +37,7 @@ export default function FinancingPage() {
         title="Know what you can afford,"
         accent="before you look."
         description="We work with Ethiopia's major lenders to turn a deposit into a set of keys — with terms explained in plain language."
-        image="/images/prop-apartment.jpg"
+        image={IMG.apartment}
       />
 
       {/* Calculator + intro */}

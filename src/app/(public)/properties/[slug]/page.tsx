@@ -36,6 +36,7 @@ export default async function PropertyDetailPage({ params }: Props) {
         phone: users.phone,
         specialty: users.specialty,
         bio: users.bio,
+        avatarUrl: users.avatarUrl,
       })
       .from(users)
       .where(eq(users.id, propertyWithMedia.agentId))

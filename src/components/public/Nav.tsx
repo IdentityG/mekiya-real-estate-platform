@@ -5,10 +5,11 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { IMG } from "@/lib/images";
 
 const propertyTypes = [
-  { label: "Apartments", href: "/properties?type=apartment", desc: "Sale and rental across CMC", img: "/images/prop-apartment.jpg" },
-  { label: "Commercial", href: "/properties?type=commercial", desc: "Offices, retail & showrooms", img: "/images/prop-commercial.jpg" },
+  { label: "Apartments", href: "/properties?type=apartment", desc: "Sale and rental across CMC", img: IMG.apartment },
+  { label: "Commercial", href: "/properties?type=commercial", desc: "Offices, retail & showrooms", img: IMG.commercial },
 ];
 
 const navLinks = [

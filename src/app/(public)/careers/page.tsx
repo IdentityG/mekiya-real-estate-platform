@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { PageHero } from "@/components/public/PageHero";
+import { IMG } from "@/lib/images";
 
 export const metadata = { title: "Careers — Mekiya Real Estate" };
 
@@ -30,7 +31,7 @@ export default function CareersPage() {
         title="Build a career, not"
         accent="just a commission."
         description="We're hiring licensed agents and specialists who care about doing property properly in Ethiopia."
-        image="/images/about-office.jpg"
+        image={IMG.aboutOffice}
       />
 
       {/* Culture */}

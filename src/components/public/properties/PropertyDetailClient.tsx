@@ -11,10 +11,12 @@ import { PropertyGallery } from "@/components/public/properties/PropertyGallery"
 import { PaymentCalculator } from "@/components/public/properties/PaymentCalculator";
 import { PropertyActions } from "@/components/public/properties/PropertyActions";
 import { getPropertyImages, getTourVideo } from "@/lib/media";
+import { IMG } from "@/lib/images";
 
 interface Agent {
   id: number; name: string; email: string;
   phone: string | null; specialty: string | null; bio: string | null;
+  avatarUrl: string | null;
 }
 
 interface Property {
@@ -348,7 +350,7 @@ export function PropertyDetailClient({ property, agent, similarProperties }: Pro
                 <p className="text-[10px] font-body font-bold uppercase tracking-[0.2em] text-stone-400 mb-4">Your Agent</p>
                 <div className="flex items-center gap-4 mb-5">
                   <div className="relative w-14 h-14 rounded-full overflow-hidden shrink-0 border-2 border-brass/30">
-                    <Image src="/images/about-office.jpg" alt={agent.name} fill sizes="56px" className="object-cover" />
+                    <Image src={agent.avatarUrl || IMG.aboutOffice} alt={agent.name} fill sizes="56px" className="object-cover" />
                   </div>
                   <div className="min-w-0">
                     <p className="font-body font-semibold text-ink">{agent.name}</p>

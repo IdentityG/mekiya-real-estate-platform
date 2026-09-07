@@ -10,28 +10,28 @@ const services = [
     tagline: "Your home, found.",
     desc: "From first shortlist to final signature — we handle search, verification, negotiation, and legal transfer. Every listing is physically inspected and title-verified before you ever step inside.",
     points: ["Title & ownership verification", "Mortgage & financing assistance", "Inspection reports on every listing", "Full legal transfer support"],
-    img: "/images/prop-apartment.jpg",
+    img: "https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=1200",
   },
   {
     title: "Selling",
     tagline: "The right price, the right buyer.",
     desc: "We price with real market data, photograph professionally, and market your property across our network of 2,000+ qualified buyers. You approve every step.",
     points: ["Data-driven property valuation", "Professional photography & staging advice", "Qualified buyer screening", "Negotiation handled end-to-end"],
-    img: "/images/prop-penthouse.jpg",
+    img: "https://images.pexels.com/photos/2119714/pexels-photo-2119714.jpeg?auto=compress&cs=tinysrgb&w=1200",
   },
   {
     title: "Renting & Leasing",
     tagline: "Furnished or blank canvas.",
     desc: "Executive furnished apartments for expatriates and companies, or long-term family rentals across CMC and Bole — with transparent contracts and fair deposit handling.",
     points: ["Furnished executive rentals", "Corporate leasing packages", "Fair deposit protection", "Landlord management services"],
-    img: "/images/prop-office.jpg",
+    img: "https://images.pexels.com/photos/2883049/pexels-photo-2883049.jpeg?auto=compress&cs=tinysrgb&w=1200",
   },
   {
     title: "Investment Advisory",
     tagline: "Property that compounds.",
     desc: "Addis Ababa apartment and commercial stock is one of Africa's fastest-growing markets. We help diaspora and local investors build portfolios with real yield projections and exit strategies.",
     points: ["Yield & ROI analysis", "Buy-to-rent opportunities", "Diaspora purchase facilitation", "Portfolio management"],
-    img: "/images/prop-commercial.jpg",
+    img: "https://images.pexels.com/photos/380768/pexels-photo-380768.jpeg?auto=compress&cs=tinysrgb&w=1200",
   },
 ];
 
@@ -48,7 +48,7 @@ export function ServicesClient() {
       {/* Hero */}
       <section className="relative pt-40 pb-24 bg-ink overflow-hidden">
         <div className="absolute inset-0 opacity-30">
-          <Image src="/images/about-office.jpg" alt="" fill priority className="object-cover" />
+          <Image src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=1600" alt="" fill priority className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-ink/50 via-ink/70 to-ink" />
         </div>
         <div className="max-w-7xl mx-auto px-6 lg:px-10 relative">

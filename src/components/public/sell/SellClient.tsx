@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { PageHero } from "@/components/public/PageHero";
+import { IMG } from "@/lib/images";
 
 const benefits = [
   { title: "Free written valuation", desc: "Backed by recent comparable sales in your street, not a guess." },
@@ -57,7 +58,7 @@ export function SellClient() {
         title="Sell for what it's"
         accent="actually worth."
         description="Free valuation, professional marketing, screened buyers, and commission only when the deal closes."
-        image="/images/prop-villa.jpg"
+        image={IMG.villa}
       />
 
       {/* Valuation form + benefits */}
@@ -82,7 +83,7 @@ export function SellClient() {
 
             <div className="mt-8 flex items-center gap-4 p-5 bg-cream border border-ink/[0.08]">
               <div className="relative w-14 h-14 rounded-full overflow-hidden shrink-0 border-2 border-brass/30">
-                <Image src="/images/about-office.jpg" alt="" fill sizes="56px" className="object-cover" />
+                <Image src={IMG.aboutOffice} alt="" fill sizes="56px" className="object-cover" />
               </div>
               <div>
                 <p className="font-display text-ink text-lg">Average 42 days to sale</p>

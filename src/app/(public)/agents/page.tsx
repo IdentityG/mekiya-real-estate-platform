@@ -15,6 +15,7 @@ export default async function AgentsPage() {
       bio: users.bio,
       phone: users.phone,
       email: users.email,
+      avatarUrl: users.avatarUrl,
     })
     .from(users)
     .where(sql`${users.role} != 'public'`);

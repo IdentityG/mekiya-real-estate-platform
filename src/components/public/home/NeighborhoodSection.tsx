@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { IMG } from "@/lib/images";
 import { formatPrice } from "@/lib/utils";
 
 interface Props {
@@ -39,7 +40,7 @@ export function NeighborhoodSection({ neighborhoods }: Props) {
                 <Link href={`/properties?neighborhood=${hood.slug}`} className="group relative block border border-ink/[0.08] overflow-hidden bg-ink">
                   <div className="relative h-72 overflow-hidden">
                     <Image
-                      src="/images/neighborhood-bole.jpg"
+                      src={hood.imageUrl || IMG.neighborhoodBole}
                       alt={hood.name}
                       fill
                       sizes="(max-width: 768px) 100vw, 33vw"

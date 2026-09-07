@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { IMG } from "@/lib/images";
 
 interface Agent {
   id: number;
@@ -102,7 +103,7 @@ export function ContactClient({ agents, activeListings }: Props) {
       {/* ===== HERO — bold, high-energy split ===== */}
       <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-24 bg-ink overflow-hidden">
         <div className="absolute inset-0 opacity-40">
-          <Image src="/images/about-office.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
+          <Image src={IMG.aboutOffice} alt="" fill priority sizes="100vw" className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/92 to-ink/70" />
         </div>
         {/* Floating accent orbs */}

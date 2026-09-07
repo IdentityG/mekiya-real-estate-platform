@@ -14,6 +14,7 @@ interface Agent {
   bio: string | null;
   phone: string | null;
   email: string;
+  avatarUrl: string | null;
   listingCount: number;
 }
 
@@ -43,6 +44,8 @@ const fallbackPortraits = [
 ];
 
 function portraitFor(agent: Agent, index: number) {
+  // Use avatar from database if available, otherwise fallback
+  if (agent.avatarUrl) return agent.avatarUrl;
   return portraits[agent.email] ?? fallbackPortraits[index % fallbackPortraits.length];
 }
 
@@ -137,7 +140,7 @@ export function AgentsClient({ agents }: { agents: Agent[] }) {
               <div className="flex items-center">
                 <div className="relative">
                   <div className="relative w-32 h-40 overflow-hidden border-4 border-ink shadow-2xl">
-                    <Image src={portraits[agents[0]?.email] ?? fallbackPortraits[0]} alt="" fill sizes="128px" className="object-cover" priority />
+                    <Image src={portraitFor(agents[0], 0)} alt={agents[0].name} fill sizes="128px" className="object-cover" priority />
                   </div>
                   <div className="absolute -bottom-3 -left-3 bg-brass text-ink px-3 py-1.5 text-[10px] font-body font-bold uppercase tracking-[0.12em]">
                     {roleLabels[agents[0]?.role ?? ""] || "Agent"}
@@ -145,7 +148,7 @@ export function AgentsClient({ agents }: { agents: Agent[] }) {
                 </div>
                 <div className="relative -ml-6">
                   <div className="relative w-32 h-40 overflow-hidden border-4 border-ink shadow-2xl mt-8">
-                    <Image src={portraits[agents[1]?.email] ?? fallbackPortraits[1]} alt="" fill sizes="128px" className="object-cover" priority />
+                    <Image src={portraitFor(agents[1], 1)} alt={agents[1].name} fill sizes="128px" className="object-cover" priority />
                   </div>
                   <div className="absolute -bottom-3 -right-3 bg-ink border border-white/15 text-white px-3 py-1.5 text-[10px] font-body font-bold uppercase tracking-[0.12em]">
                     {roleLabels[agents[1]?.role ?? ""] || "Agent"}

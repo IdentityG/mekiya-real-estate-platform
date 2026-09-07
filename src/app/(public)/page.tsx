@@ -9,6 +9,26 @@ import { NeighborhoodSection } from "@/components/public/home/NeighborhoodSectio
 import { TestimonialSection } from "@/components/public/home/TestimonialSection";
 
 export default async function HomePage() {
+  // Fetch top featured property for hero card
+  const heroProperty = await db
+    .select({
+      id: properties.id,
+      title: properties.title,
+      slug: properties.slug,
+      price: properties.price,
+      currency: properties.currency,
+      bedrooms: properties.bedrooms,
+      bathrooms: properties.bathrooms,
+      size: properties.size,
+      neighborhood: properties.neighborhood,
+      address: properties.address,
+      media: properties.media,
+    })
+    .from(properties)
+    .where(eq(properties.status, "published"))
+    .orderBy(desc(properties.featured), desc(properties.createdAt))
+    .limit(1);
+
   const featuredProps = await db
     .select()
     .from(properties)
@@ -26,7 +46,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroSection />
+      <HeroSection featuredProperty={heroProperty[0] || null} />
       <FeaturedListings properties={featuredProps} />
       <CategoryGrid />
       <StatsSection />

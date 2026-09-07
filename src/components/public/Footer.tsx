@@ -28,7 +28,7 @@ const columns = [
     links: [
       ["About Mekiya", "/about"],
       ["Our Agents", "/agents"],
-      ["Careers", "/careers"],
+
       ["Contact Us", "/contact"],
     ],
   },

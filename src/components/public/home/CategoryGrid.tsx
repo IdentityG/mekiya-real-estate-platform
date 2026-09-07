@@ -3,10 +3,11 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { IMG } from "@/lib/images";
 
 const categories = [
-  { type: "apartment", label: "Apartments", count: "Sale & Rent", img: "/images/prop-apartment.jpg" },
-  { type: "commercial", label: "Commercial", count: "Offices & retail", img: "/images/prop-commercial.jpg" },
+  { type: "apartment", label: "Apartments", count: "Sale & Rent", img: IMG.apartment },
+  { type: "commercial", label: "Commercial", count: "Offices & retail", img: IMG.commercial },
 ];
 
 export function CategoryGrid() {
