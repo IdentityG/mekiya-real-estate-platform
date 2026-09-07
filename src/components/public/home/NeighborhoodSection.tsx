@@ -8,7 +8,7 @@ import { formatPrice } from "@/lib/utils";
 
 interface Props {
   neighborhoods: Array<{
-    id: number; name: string; slug: string; description: string | null; avgPrice: number | null;
+    id: number; name: string; slug: string; description: string | null; avgPrice: number | null; imageUrl: string | null;
   }>;
 }
 
