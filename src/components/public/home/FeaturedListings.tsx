@@ -10,7 +10,7 @@ interface Props {
     listingType: string; status: string; price: number; currency: string;
     bedrooms: number | null; bathrooms: number | null; size: number | null;
     neighborhood: string | null; featured: boolean | null; verified: boolean | null;
-    address: string | null;
+    address: string | null; media: string[] | null;
   }>;
 }
 

@@ -22,7 +22,7 @@ interface Property {
   listingType: string; status: string; price: number; currency: string;
   bedrooms: number | null; bathrooms: number | null; size: number | null;
   description: string | null; address: string | null; city: string | null;
-  neighborhood: string | null; amenities: string[] | null;
+  neighborhood: string | null; amenities: string[] | null; media: string[] | null;
   featured: boolean | null; verified: boolean | null; views: number | null;
   yearBuilt: number | null; furnished: boolean | null;
 }
@@ -65,7 +65,13 @@ const amenityIcons: Record<string, string> = {
 export function PropertyDetailClient({ property, agent, similarProperties }: Props) {
   const [formMode, setFormMode] = useState<"visit" | "offer" | null>(null);
   const [offerSent, setOfferSent] = useState(false);
-  const images = getPropertyImages(property.slug, property.propertyType);
+  
+  // Use actual media from database, fallback to getPropertyImages if empty
+  const dbImages = Array.isArray(property.media) && property.media.length > 0 
+    ? property.media 
+    : getPropertyImages(property.slug, property.propertyType);
+  const images = dbImages;
+  
   const video = getTourVideo(property.id);
   const nearby = nearbyData[property.neighborhood || ""] || nearbyData.default;
   const pricePerSqm = property.size && property.size > 0 ? Math.round(property.price / property.size) : null;

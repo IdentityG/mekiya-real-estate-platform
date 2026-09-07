@@ -13,14 +13,20 @@ interface PropertyCardProps {
     listingType: string; status: string; price: number; currency: string;
     bedrooms: number | null; bathrooms: number | null; size: number | null;
     neighborhood: string | null; featured: boolean | null; verified: boolean | null;
-    address: string | null;
+    address: string | null; media: string[] | null;
   };
   index?: number;
 }
 
 export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
   const [hovered, setHovered] = useState(false);
-  const images = getPropertyImages(property.slug, property.propertyType);
+  
+  // Use actual media from database, fallback to getPropertyImages if empty
+  const dbImages = Array.isArray(property.media) && property.media.length > 0 
+    ? property.media 
+    : getPropertyImages(property.slug, property.propertyType);
+  const images = dbImages;
+  
   const primary = images[0];
   const secondary = images[1] || images[0];
 

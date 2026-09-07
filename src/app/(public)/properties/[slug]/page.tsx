@@ -19,9 +19,15 @@ export default async function PropertyDetailPage({ params }: Props) {
 
   if (!property) notFound();
 
+  // Ensure media is an array
+  const propertyWithMedia = {
+    ...property,
+    media: Array.isArray(property.media) ? property.media : [],
+  };
+
   // Get agent info
   let agent = null;
-  if (property.agentId) {
+  if (propertyWithMedia.agentId) {
     const [a] = await db
       .select({
         id: users.id,
@@ -32,7 +38,7 @@ export default async function PropertyDetailPage({ params }: Props) {
         bio: users.bio,
       })
       .from(users)
-      .where(eq(users.id, property.agentId))
+      .where(eq(users.id, propertyWithMedia.agentId))
       .limit(1);
     agent = a || null;
   }
@@ -44,21 +50,21 @@ export default async function PropertyDetailPage({ params }: Props) {
     .where(
       and(
         eq(properties.status, "published"),
-        eq(properties.propertyType, property.propertyType),
-        ne(properties.id, property.id)
+        eq(properties.propertyType, propertyWithMedia.propertyType),
+        ne(properties.id, propertyWithMedia.id)
       )
     )
     .limit(3);
 
   // Increment view count (fire and forget)
   db.update(properties)
-    .set({ views: (property.views || 0) + 1 })
-    .where(eq(properties.id, property.id))
+    .set({ views: (propertyWithMedia.views || 0) + 1 })
+    .where(eq(properties.id, propertyWithMedia.id))
     .then(() => {});
 
   return (
     <PropertyDetailClient
-      property={property}
+      property={propertyWithMedia}
       agent={agent}
       similarProperties={similar}
     />

@@ -12,7 +12,7 @@ interface Property {
   bedrooms: number | null; bathrooms: number | null; size: number | null;
   neighborhood: string | null; featured: boolean | null; verified: boolean | null;
   address: string | null; amenities: string[] | null; yearBuilt: number | null;
-  furnished: boolean | null; views: number | null;
+  furnished: boolean | null; views: number | null; media: string[] | null;
 }
 
 interface Props {
