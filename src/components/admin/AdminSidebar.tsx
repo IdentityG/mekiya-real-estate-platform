@@ -7,6 +7,8 @@ import {
   Wallet, BarChart3, Settings, LogOut, Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { signOut } from "next-auth/react";
+import { toast } from "sonner";
 
 interface Props {
   user: { name: string; email: string; role: string };
@@ -53,9 +55,14 @@ export function AdminSidebar({ user, counts, onNavigate }: Props) {
   const router = useRouter();
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/admin/login");
-    router.refresh();
+    try {
+      await signOut({ redirect: false });
+      toast.success("Signed out successfully");
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      toast.error("Failed to sign out");
+    }
   }
 
   return (

@@ -20,6 +20,8 @@
     "db:setup": "pnpm db:push && pnpm db:apply-rls && pnpm db:seed"
   },
   "dependencies": {
+    "@auth/drizzle-adapter": "^1.11.3",
+    "@hookform/resolvers": "^5.9.1",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
     "@supabase/supabase-js": "^2.112.4",
@@ -33,12 +35,16 @@
     "lenis": "^1.3.26",
     "lucide-react": "^1.35.0",
     "next": "16.2.6",
+    "next-auth": "5.0.0-beta.32",
     "pg": "8.20.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
+    "react-hook-form": "^7.88.0",
     "recharts": "^3.10.1",
     "slugify": "^1.6.9",
-    "three": "^0.185.1"
+    "sonner": "^2.0.8",
+    "three": "^0.185.1",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.17",
