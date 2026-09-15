@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getSession, isAdmin, isStaff } from "@/lib/auth";
-import { hashPassword } from "@/lib/auth";
+import bcrypt from "bcryptjs";
 import { eq, sql } from "drizzle-orm";
 
 export async function GET() {
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       .values({
         name: body.name,
         email: body.email,
-        passwordHash: await hashPassword(body.password),
+        passwordHash: await bcrypt.hash(body.password, 10),
         role: body.role === "super_admin" ? "sales_manager" : (body.role === "agent" ? "agent" : "sales_manager"),
         phone: body.phone || null,
         specialty: body.specialty || null,

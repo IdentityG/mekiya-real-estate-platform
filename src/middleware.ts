@@ -1,33 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
 
+// Note: Auth checking is now handled at the page/layout level
+// Middleware in Next.js 15+ with NextAuth v5 should be minimal
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protect all /admin routes
-  if (pathname.startsWith("/admin")) {
-    const session = await auth();
-
-    // Redirect to login if not authenticated
-    if (!session?.user) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    // Check if user has admin privileges (not 'public' role)
-    const userRole = session.user.role;
-    if (userRole === "public") {
-      // Regular users cannot access admin panel
-      return NextResponse.redirect(new URL("/", request.url));
-    }
-
-    // Optional: Super strict protection - only super_admin can access certain routes
-    if (pathname.startsWith("/admin/users") && userRole !== "super_admin") {
-      return NextResponse.redirect(new URL("/admin", request.url));
-    }
-  }
+  // For admin routes, we'll rely on page-level auth checks
+  // This is because Edge Runtime doesn't support bcrypt/database calls
+  // See: https://nextjs.org/docs/messages/node-module-in-edge-runtime
 
   return NextResponse.next();
 }

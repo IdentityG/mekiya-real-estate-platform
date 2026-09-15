@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { formatPrice, getPropertyTypeLabel } from "@/lib/utils";
 import { getPropertyImages } from "@/lib/media";
+import { CompareButton } from "@/components/public/properties/CompareButton";
 
 interface PropertyCardProps {
   property: {
@@ -70,10 +71,11 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
               </span>
             )}
           </div>
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-3 right-3 flex gap-2">
             <span className="px-2.5 py-1 bg-cream/90 text-ink text-[10px] font-body font-bold uppercase tracking-[0.1em]">
               {property.listingType === "sale" ? "For Sale" : "For Rent"}
             </span>
+            <CompareButton propertyId={property.id} variant="icon" className="bg-cream/90 hover:bg-cream" />
           </div>
         </div>
 

@@ -10,17 +10,11 @@ export const propertySchema = z.object({
     .string()
     .min(1, "Slug is required")
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase with hyphens only"),
-  propertyType: z.enum(["apartment", "commercial"], {
-    required_error: "Property type is required",
-  }),
-  listingType: z.enum(["sale", "rent"], {
-    required_error: "Listing type is required",
-  }),
-  status: z.enum(["draft", "published", "reserved", "sold", "archived"], {
-    required_error: "Status is required",
-  }),
+  propertyType: z.enum(["apartment", "commercial"]),
+  listingType: z.enum(["sale", "rent"]),
+  status: z.enum(["draft", "published", "reserved", "sold", "archived"]),
   price: z
-    .number({ required_error: "Price is required" })
+    .number()
     .positive("Price must be positive")
     .max(1000000000, "Price is too high"),
   currency: z.string().default("ETB"),

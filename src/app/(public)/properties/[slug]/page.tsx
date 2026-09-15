@@ -1,9 +1,9 @@
 import { db } from "@/db";
 import { properties, users } from "@/db/schema";
 import { eq, and, ne } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { notFound } from "next/navigation.js";
 import { PropertyDetailClient } from "@/components/public/properties/PropertyDetailClient";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { generatePropertySchema, generateBreadcrumbSchema } from "@/lib/structured-data";
 
 interface Props {
@@ -91,6 +91,8 @@ export default async function PropertyDetailPage({ params }: Props) {
         name: users.name,
         email: users.email,
         phone: users.phone,
+        whatsappPhone: users.whatsappPhone,
+        telegramUsername: users.telegramUsername,
         specialty: users.specialty,
         bio: users.bio,
         avatarUrl: users.avatarUrl,

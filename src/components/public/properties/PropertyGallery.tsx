@@ -3,19 +3,26 @@
 import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { VideoTourPlayer } from "@/components/public/virtual-tours/VideoTourPlayer";
 
 interface Props {
   images: string[];
-  video: string;
+  video?: string;
+  videoTourUrl?: string | null;
+  videoTourThumbnail?: string | null;
   title: string;
 }
 
-type Tab = "photos" | "video";
+type Tab = "photos" | "video" | "video_tour";
 
-export function PropertyGallery({ images, video, title }: Props) {
+export function PropertyGallery({ images, video, videoTourUrl, videoTourThumbnail, title }: Props) {
   const [tab, setTab] = useState<Tab>("photos");
   const [activeImg, setActiveImg] = useState(0);
   const [lightbox, setLightbox] = useState(false);
+
+  // Determine available tabs
+  const hasVideo = !!video;
+  const hasVideoTour = !!videoTourUrl;
 
   const nextImg = useCallback(() => setActiveImg((p) => (p + 1) % images.length), [images.length]);
   const prevImg = useCallback(() => setActiveImg((p) => (p - 1 + images.length) % images.length), [images.length]);
@@ -39,20 +46,34 @@ export function PropertyGallery({ images, video, title }: Props) {
     <section className="relative bg-ink overflow-hidden">
       {/* Tabs */}
       <div className="absolute top-6 left-6 z-20 flex gap-1 p-1 bg-ink/70 backdrop-blur-md rounded-full border border-white/10">
-        {([
-          { id: "photos" as Tab, label: `Photos (${images.length})` },
-          { id: "video" as Tab, label: "Video Tour" },
-        ]).map((t) => (
+        <button
+          onClick={() => setTab("photos")}
+          className={`px-4 py-1.5 rounded-full text-[10px] font-body font-bold uppercase tracking-[0.12em] transition-all ${
+            tab === "photos" ? "bg-brass text-ink" : "text-white/55 hover:text-white"
+          }`}
+        >
+          Photos ({images.length})
+        </button>
+        {hasVideoTour && (
           <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
+            onClick={() => setTab("video_tour")}
             className={`px-4 py-1.5 rounded-full text-[10px] font-body font-bold uppercase tracking-[0.12em] transition-all ${
-              tab === t.id ? "bg-brass text-ink" : "text-white/55 hover:text-white"
+              tab === "video_tour" ? "bg-brass text-ink" : "text-white/55 hover:text-white"
             }`}
           >
-            {t.label}
+            Video Tour
           </button>
-        ))}
+        )}
+        {hasVideo && (
+          <button
+            onClick={() => setTab("video")}
+            className={`px-4 py-1.5 rounded-full text-[10px] font-body font-bold uppercase tracking-[0.12em] transition-all ${
+              tab === "video" ? "bg-brass text-ink" : "text-white/55 hover:text-white"
+            }`}
+          >
+            Video
+          </button>
+        )}
       </div>
 
       <div className="relative h-[60vh] sm:h-[65vh] lg:h-[72vh]">
@@ -107,7 +128,22 @@ export function PropertyGallery({ images, video, title }: Props) {
                 Expand
               </button>
             </motion.div>
-          ) : (
+          ) : tab === "video_tour" && videoTourUrl ? (
+            <motion.div
+              key="video_tour"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="absolute inset-0"
+            >
+              <VideoTourPlayer
+                videoUrl={videoTourUrl}
+                title={`${title} - Video Tour`}
+                thumbnail={videoTourThumbnail}
+                autoPlay={false}
+                className="w-full h-full"
+              />
+            </motion.div>
+          ) : tab === "video" && video ? (
             <motion.div
               key="video"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -116,7 +152,7 @@ export function PropertyGallery({ images, video, title }: Props) {
             >
               <video src={video} autoPlay muted loop controls playsInline poster={images[0]} className="w-full h-full object-cover" />
             </motion.div>
-          )}
+          ) : null}
         </AnimatePresence>
 
         {/* Thumbnails */}

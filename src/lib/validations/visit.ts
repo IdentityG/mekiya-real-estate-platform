@@ -16,9 +16,7 @@ export const visitRequestSchema = z.object({
     .min(1, "Phone is required")
     .regex(/^(\+251|0)[0-9]{9}$/, "Invalid Ethiopian phone number"),
   preferredDate: z.string().min(1, "Preferred date is required"),
-  preferredTime: z.enum(["morning", "afternoon", "evening"], {
-    required_error: "Preferred time is required",
-  }),
+  preferredTime: z.enum(["morning", "afternoon", "evening"]),
   message: z.string().max(1000, "Message is too long").nullable().optional(),
   status: z.enum(["pending", "confirmed", "completed", "cancelled"]).default("pending"),
 });

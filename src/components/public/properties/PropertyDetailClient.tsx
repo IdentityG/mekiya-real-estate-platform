@@ -10,6 +10,11 @@ import { VisitRequestForm } from "@/components/public/properties/VisitRequestFor
 import { PropertyGallery } from "@/components/public/properties/PropertyGallery";
 import { PaymentCalculator } from "@/components/public/properties/PaymentCalculator";
 import { PropertyActions } from "@/components/public/properties/PropertyActions";
+import { ContactButtons } from "@/components/public/properties/ContactButtons";
+import { FloatingWhatsAppButton } from "@/components/public/properties/FloatingWhatsAppButton";
+import { VirtualTourViewer } from "@/components/public/virtual-tours/VirtualTourViewer";
+import { ConstructionTimeline } from "@/components/public/properties/ConstructionTimeline";
+import { StreetView } from "@/components/public/properties/StreetView";
 import { getPropertyImages, getTourVideo } from "@/lib/media";
 import { IMG } from "@/lib/images";
 
@@ -27,6 +32,15 @@ interface Property {
   neighborhood: string | null; amenities: string[] | null; media: string[] | null;
   featured: boolean | null; verified: boolean | null; views: number | null;
   yearBuilt: number | null; furnished: boolean | null;
+  lat: number | null; lng: number | null;
+  // Virtual Tours
+  virtualTour360Url: string | null;
+  videoTourUrl: string | null;
+  videoTourThumbnail: string | null;
+  streetViewEnabled: boolean | null;
+  constructionStatus: string | null;
+  constructionTimeline: any[] | null;
+  completionDate: Date | null;
 }
 
 interface Props {
@@ -108,6 +122,15 @@ export function PropertyDetailClient({ property, agent, similarProperties }: Pro
 
   return (
     <div className="bg-linen min-h-screen">
+      {/* Floating WhatsApp Button */}
+      <FloatingWhatsAppButton
+        agentPhone={agent?.phone || undefined}
+        agentName={agent?.name}
+        propertyTitle={property.title}
+        propertyId={property.id}
+        language="en"
+      />
+
       {/* Breadcrumb */}
       <div className="bg-ink pt-24 pb-4">
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
@@ -124,7 +147,13 @@ export function PropertyDetailClient({ property, agent, similarProperties }: Pro
       </div>
 
       {/* Gallery with offset signature */}
-      <PropertyGallery images={images} video={video} title={property.title} />
+      <PropertyGallery 
+        images={images} 
+        video={video} 
+        videoTourUrl={property.videoTourUrl}
+        videoTourThumbnail={property.videoTourThumbnail}
+        title={property.title} 
+      />
 
       {/* Title + price strip */}
       <section className="bg-cream border-b border-ink/[0.08]">
@@ -204,6 +233,34 @@ export function PropertyDetailClient({ property, agent, similarProperties }: Pro
               </p>
             </motion.section>
 
+            {/* Virtual Tour */}
+            {property.virtualTour360Url && (
+              <motion.section initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                <p className="text-brass text-[11px] font-body font-bold uppercase tracking-[0.2em] mb-4">Experience</p>
+                <h3 className="font-display text-ink text-2xl tracking-tight mb-6">360° Virtual Tour</h3>
+                <p className="text-graphite/75 font-body text-sm mb-6">
+                  Explore this property from the comfort of your home. Use your mouse to look around, scroll to zoom, and click fullscreen for the best experience.
+                </p>
+                <VirtualTourViewer
+                  tourUrl={property.virtualTour360Url}
+                  title={property.title}
+                  className="border border-ink/[0.08]"
+                />
+              </motion.section>
+            )}
+
+            {/* Construction Timeline */}
+            {property.constructionStatus === "under_construction" && 
+             property.constructionTimeline && 
+             Array.isArray(property.constructionTimeline) && 
+             property.constructionTimeline.length > 0 && (
+              <ConstructionTimeline
+                timeline={property.constructionTimeline}
+                completionDate={property.completionDate}
+                propertyTitle={property.title}
+              />
+            )}
+
             {/* Amenities */}
             {property.amenities && property.amenities.length > 0 && (
               <motion.section initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -251,6 +308,24 @@ export function PropertyDetailClient({ property, agent, similarProperties }: Pro
                   ))}
                 </div>
               </div>
+
+              {/* Street View */}
+              {property.streetViewEnabled && property.lat && property.lng && (
+                <div className="mt-6">
+                  <p className="text-brass text-[11px] font-body font-bold uppercase tracking-[0.2em] mb-4">
+                    Explore the Area
+                  </p>
+                  <StreetView
+                    lat={property.lat}
+                    lng={property.lng}
+                    title={`${property.neighborhood || property.city || "Addis Ababa"} - Street View`}
+                    className="border border-ink/[0.08]"
+                  />
+                  <p className="text-graphite/60 text-xs font-body mt-3 text-center">
+                    Street-level imagery showing the surrounding neighborhood
+                  </p>
+                </div>
+              )}
             </motion.section>
 
             {/* Payment calculator (sale only) */}
@@ -355,27 +430,15 @@ export function PropertyDetailClient({ property, agent, similarProperties }: Pro
                   <div className="min-w-0">
                     <p className="font-body font-semibold text-ink">{agent.name}</p>
                     {agent.specialty && <p className="text-slate text-xs font-body font-medium">{agent.specialty}</p>}
-                    <p className="text-stone-400 text-[11px] font-body mt-0.5 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Typically replies in under 2h
-                    </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {agent.phone && (
-                    <a href={`tel:${agent.phone}`} className="flex items-center justify-center gap-2 py-2.5 bg-ink text-white text-xs font-body font-semibold hover:bg-graphite transition-colors">
-                      Call
-                    </a>
-                  )}
-                  <a href={`mailto:${agent.email}`} className="flex items-center justify-center gap-2 py-2.5 border border-ink/15 text-ink text-xs font-body font-semibold hover:border-brass transition-colors">
-                    Email
-                  </a>
-                </div>
-                {agent.phone && (
-                  <a href={`https://wa.me/${agent.phone.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer"
-                    className="mt-2 flex items-center justify-center gap-2 py-2.5 bg-[#25D366]/10 text-[#1da851] text-xs font-body font-semibold border border-[#25D366]/20 hover:bg-[#25D366]/20 transition-colors">
-                    WhatsApp Agent
-                  </a>
-                )}
+                <ContactButtons
+                  agent={agent}
+                  propertyId={property.id}
+                  propertyTitle={property.title}
+                  propertyUrl={`${typeof window !== 'undefined' ? window.location.origin : ''}/properties/${property.slug}`}
+                  language="en"
+                />
               </div>
             )}
 

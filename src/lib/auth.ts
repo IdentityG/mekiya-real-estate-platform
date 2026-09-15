@@ -21,12 +21,7 @@ declare module "next-auth" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: DrizzleAdapter(db, {
-    usersTable: users,
-    accountsTable: accounts,
-    sessionsTable: sessions,
-    verificationTokensTable: verificationTokens,
-  }),
+  // Don't use adapter with JWT strategy
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -101,3 +96,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
 });
+
+// Helper functions for backwards compatibility
+export async function getSession() {
+  const session = await auth();
+  if (!session?.user) return null;
+  
+  return {
+    name: session.user.name || "",
+    email: session.user.email || "",
+    role: session.user.role,
+    id: session.user.id,
+  };
+}
+
+export function isStaff(role: string): boolean {
+  return role !== "public";
+}
+
+export function isAdmin(role: string): boolean {
+  return role === "super_admin" || role === "sales_manager";
+}

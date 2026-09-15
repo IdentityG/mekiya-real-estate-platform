@@ -1,4 +1,4 @@
-import { getSession, isStaff } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -10,10 +10,11 @@ import { AdminTopbar } from "@/components/admin/AdminTopbar";
 import { AdminMobileNav } from "@/components/admin/AdminMobileNav";
 
 export default async function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession();
+  const session = await auth();
 
-  if (!session || !isStaff(session.role)) {
-    redirect("/admin/login");
+  // Redirect if not authenticated or not staff
+  if (!session?.user || session.user.role === "public") {
+    redirect("/login?callbackUrl=/admin");
   }
 
   const [pendingVisits] = await db
@@ -78,9 +79,9 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     .slice(0, 6);
 
   const user = {
-    name: session.name,
-    email: session.email,
-    role: session.role,
+    name: session.user.name || "",
+    email: session.user.email || "",
+    role: session.user.role,
   };
 
   return (

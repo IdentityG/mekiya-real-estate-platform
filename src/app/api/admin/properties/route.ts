@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
         lng: body.lng ? Number(body.lng) : null,
         amenities: body.amenities || [],
         media: body.media || [],
-        agentId: body.agentId ? Number(body.agentId) : session.userId,
+        agentId: body.agentId ? Number(body.agentId) : Number(session.id),
         featured: body.featured || false,
         verified: body.verified || false,
         yearBuilt: body.yearBuilt ? Number(body.yearBuilt) : null,

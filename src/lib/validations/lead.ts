@@ -14,9 +14,7 @@ export const leadSchema = z.object({
     .string()
     .min(1, "Phone is required")
     .regex(/^(\+251|0)[0-9]{9}$/, "Invalid Ethiopian phone number"),
-  leadType: z.enum(["buy", "rent", "general"], {
-    required_error: "Lead type is required",
-  }),
+  leadType: z.enum(["buy", "rent", "general"]),
   status: z.enum([
     "new",
     "contacted",

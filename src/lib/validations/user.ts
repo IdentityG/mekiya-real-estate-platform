@@ -10,9 +10,7 @@ export const userSchema = z.object({
     .string()
     .min(1, "Email is required")
     .email("Invalid email address"),
-  role: z.enum(["public", "agent", "sales_manager", "super_admin"], {
-    required_error: "Role is required",
-  }),
+  role: z.enum(["public", "agent", "sales_manager", "super_admin"]),
   phone: z
     .string()
     .regex(/^(\+251|0)[0-9]{9}$/, "Invalid Ethiopian phone number")

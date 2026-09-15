@@ -70,9 +70,12 @@ export const users = pgTable("users", {
   name: varchar("name", { length: 255 }).notNull(),
   role: roleEnum("role").notNull().default("public"),
   phone: varchar("phone", { length: 50 }),
+  whatsappPhone: varchar("whatsapp_phone", { length: 50 }),
+  telegramUsername: varchar("telegram_username", { length: 100 }),
   avatarUrl: text("avatar_url"),
   bio: text("bio"),
   specialty: varchar("specialty", { length: 255 }),
+  languagePreference: varchar("language_preference", { length: 10 }).default("en"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -99,6 +102,20 @@ export const properties = pgTable("properties", {
   lng: doublePrecision("lng"),
   amenities: jsonb("amenities").$type<string[]>().default([]),
   media: jsonb("media").$type<string[]>().default([]),
+  // Virtual Tours & Enhanced Media
+  virtualTour360Url: text("virtual_tour_360_url"), // URL to 360° tour (Pannellum, Matterport, etc.)
+  videoTourUrl: text("video_tour_url"), // YouTube, Vimeo, or direct video URL
+  videoTourThumbnail: text("video_tour_thumbnail"), // Thumbnail for video tour
+  streetViewEnabled: boolean("street_view_enabled").default(false), // Google Street View integration
+  constructionStatus: varchar("construction_status", { length: 50 }), // "completed", "under_construction", "planned"
+  constructionTimeline: jsonb("construction_timeline").$type<Array<{
+    date: string;
+    phase: string;
+    description: string;
+    images?: string[];
+    progress?: number; // 0-100
+  }>>().default([]),
+  completionDate: timestamp("completion_date"), // Expected completion for under-construction
   agentId: integer("agent_id").references(() => users.id),
   featured: boolean("featured").default(false),
   verified: boolean("verified").default(false),
@@ -139,6 +156,18 @@ export const leads = pgTable("leads", {
   source: varchar("source", { length: 100 }),
   notes: jsonb("notes").$type<Array<{ date: string; text: string }>>().default([]),
   assignedAgentId: integer("assigned_agent_id").references(() => users.id),
+  // Smart Lead Management Fields
+  leadScore: integer("lead_score").default(0),
+  lastActivityAt: timestamp("last_activity_at"),
+  viewCount: integer("view_count").default(0),
+  whatsappOptIn: boolean("whatsapp_opt_in").default(false),
+  smsOptIn: boolean("sms_opt_in").default(true),
+  languagePreference: varchar("language_preference", { length: 10 }).default("en"),
+  interestedPropertyTypes: jsonb("interested_property_types").$type<string[]>().default([]),
+  budgetMin: doublePrecision("budget_min"),
+  budgetMax: doublePrecision("budget_max"),
+  preferredNeighborhoods: jsonb("preferred_neighborhoods").$type<string[]>().default([]),
+  nextFollowUpDate: timestamp("next_follow_up_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -233,4 +262,123 @@ export const verificationTokens = pgTable("verification_tokens", {
   identifier: text("identifier").notNull(),
   token: text("token").notNull().unique(),
   expires: timestamp("expires").notNull(),
+});
+
+// ===== Lead Activity Tracking =====
+export const leadActivityEnum = pgEnum("lead_activity_type", [
+  "property_view",
+  "property_favorite",
+  "contact_whatsapp",
+  "contact_phone",
+  "contact_email",
+  "visit_request",
+  "search",
+  "compare_properties",
+  "agent_note",
+]);
+
+export const leadActivities = pgTable("lead_activities", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id")
+    .references(() => leads.id, { onDelete: "cascade" })
+    .notNull(),
+  activityType: leadActivityEnum("activity_type").notNull(),
+  propertyId: integer("property_id").references(() => properties.id),
+  metadata: jsonb("metadata").$type<Record<string, any>>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ===== Notifications & Follow-ups =====
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "sms",
+  "email",
+  "whatsapp",
+  "in_app",
+]);
+
+export const notificationStatusEnum = pgEnum("notification_status", [
+  "pending",
+  "sent",
+  "failed",
+  "delivered",
+]);
+
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  recipientId: integer("recipient_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  type: notificationTypeEnum("type").notNull(),
+  status: notificationStatusEnum("status").notNull().default("pending"),
+  subject: varchar("subject", { length: 255 }),
+  message: text("message").notNull(),
+  metadata: jsonb("metadata").$type<Record<string, any>>().default({}),
+  scheduledFor: timestamp("scheduled_for"),
+  sentAt: timestamp("sent_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ===== Property Recommendations =====
+export const propertyRecommendations = pgTable("property_recommendations", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id")
+    .references(() => leads.id, { onDelete: "cascade" })
+    .notNull(),
+  propertyId: integer("property_id")
+    .references(() => properties.id, { onDelete: "cascade" })
+    .notNull(),
+  score: doublePrecision("score").notNull(),
+  reason: text("reason"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ===== Saved Searches & Property Comparison =====
+export const savedSearches = pgTable("saved_searches", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  searchCriteria: jsonb("search_criteria").$type<{
+    propertyType?: string[];
+    listingType?: string;
+    priceMin?: number;
+    priceMax?: number;
+    bedrooms?: number;
+    bathrooms?: number;
+    sizeMin?: number;
+    sizeMax?: number;
+    neighborhoods?: string[];
+    amenities?: string[];
+    furnished?: boolean;
+    lat?: number;
+    lng?: number;
+    radius?: number; // in km
+  }>().notNull(),
+  emailAlerts: boolean("email_alerts").default(true),
+  alertFrequency: varchar("alert_frequency", { length: 20 }).default("daily"),
+  lastAlertSent: timestamp("last_alert_sent"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const propertyFavorites = pgTable("property_favorites", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  propertyId: integer("property_id")
+    .references(() => properties.id, { onDelete: "cascade" })
+    .notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const propertyComparisons = pgTable("property_comparisons", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  propertyIds: jsonb("property_ids").$type<number[]>().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });

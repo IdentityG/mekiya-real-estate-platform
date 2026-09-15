@@ -3,8 +3,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PropertyCard } from "@/components/public/PropertyCard";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { PropertyListRow } from "@/components/public/properties/PropertyListRow";
+import { SaveSearchButton } from "@/components/public/properties/SaveSearchButton";
 
 interface Property {
   id: number; title: string; slug: string; propertyType: string;
@@ -33,34 +34,66 @@ interface Props {
 
 export function PropertiesClient({ properties, neighborhoods, amenities, propertyTypes = [] }: Props) {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Use database property types or fallback to unique types from properties
   const TYPES = propertyTypes.length > 0
     ? propertyTypes.map(pt => pt.value)
     : Array.from(new Set(properties.map(p => p.propertyType)));
 
-  // Filter state
+  // Filter state - initialize from URL
   const [q, setQ] = useState(searchParams.get("q") || "");
   const [selectedTypes, setSelectedTypes] = useState<string[]>(
-    searchParams.get("type") ? [searchParams.get("type")!] : []
+    searchParams.get("type") ? searchParams.get("type")!.split(",") : []
   );
   const [listing, setListing] = useState<string>(searchParams.get("listing") || "");
   const [minPrice, setMinPrice] = useState<string>(searchParams.get("minPrice") || "");
   const [maxPrice, setMaxPrice] = useState<string>(searchParams.get("maxPrice") || "");
+  const [minSize, setMinSize] = useState<string>(searchParams.get("minSize") || "");
+  const [maxSize, setMaxSize] = useState<string>(searchParams.get("maxSize") || "");
   const [beds, setBeds] = useState<string>(searchParams.get("bedrooms") || "");
-  const [baths, setBaths] = useState<string>("");
+  const [baths, setBaths] = useState<string>(searchParams.get("bathrooms") || "");
   const [selectedHoods, setSelectedHoods] = useState<string[]>(
-    searchParams.get("neighborhood")
-      ? neighborhoods.filter((n) => n.toLowerCase().includes(searchParams.get("neighborhood")!.toLowerCase()))
-      : []
+    searchParams.get("neighborhood") ? searchParams.get("neighborhood")!.split(",") : []
   );
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
-  const [furnishedOnly, setFurnishedOnly] = useState(false);
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(
+    searchParams.get("amenities") ? searchParams.get("amenities")!.split(",") : []
+  );
+  const [furnishedOnly, setFurnishedOnly] = useState(searchParams.get("furnished") === "true");
+  const [verifiedOnly, setVerifiedOnly] = useState(searchParams.get("verified") === "true");
   const [sort, setSort] = useState(searchParams.get("sort") || "featured");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(9);
+
+  // Update URL when filters change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    
+    if (q) params.set("q", q);
+    if (selectedTypes.length) params.set("type", selectedTypes.join(","));
+    if (listing) params.set("listing", listing);
+    if (minPrice) params.set("minPrice", minPrice);
+    if (maxPrice) params.set("maxPrice", maxPrice);
+    if (minSize) params.set("minSize", minSize);
+    if (maxSize) params.set("maxSize", maxSize);
+    if (beds) params.set("bedrooms", beds);
+    if (baths) params.set("bathrooms", baths);
+    if (selectedHoods.length) params.set("neighborhood", selectedHoods.join(","));
+    if (selectedAmenities.length) params.set("amenities", selectedAmenities.join(","));
+    if (furnishedOnly) params.set("furnished", "true");
+    if (verifiedOnly) params.set("verified", "true");
+    if (sort !== "featured") params.set("sort", sort);
+
+    const queryString = params.toString();
+    const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+    
+    // Only update if URL actually changed
+    if (window.location.search !== `?${queryString}`) {
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [q, selectedTypes, listing, minPrice, maxPrice, minSize, maxSize, beds, baths, selectedHoods, selectedAmenities, furnishedOnly, verifiedOnly, sort, pathname, router]);
 
   // Instant filter pipeline
   const filtered = useMemo(() => {
@@ -75,6 +108,8 @@ export function PropertiesClient({ properties, neighborhoods, amenities, propert
     if (listing) out = out.filter((p) => p.listingType === listing);
     if (minPrice) out = out.filter((p) => p.price >= Number(minPrice));
     if (maxPrice) out = out.filter((p) => p.price <= Number(maxPrice));
+    if (minSize) out = out.filter((p) => (p.size ?? 0) >= Number(minSize));
+    if (maxSize) out = out.filter((p) => (p.size ?? 0) <= Number(maxSize));
     if (beds) out = out.filter((p) => (p.bedrooms ?? 0) >= Number(beds));
     if (baths) out = out.filter((p) => (p.bathrooms ?? 0) >= Number(baths));
     if (selectedHoods.length) out = out.filter((p) => p.neighborhood && selectedHoods.includes(p.neighborhood));
@@ -91,18 +126,18 @@ export function PropertiesClient({ properties, neighborhoods, amenities, propert
       default: out.sort((a, b) => Number(b.featured) - Number(a.featured));
     }
     return out;
-  }, [properties, q, selectedTypes, listing, minPrice, maxPrice, beds, baths, selectedHoods, selectedAmenities, furnishedOnly, verifiedOnly, sort]);
+  }, [properties, q, selectedTypes, listing, minPrice, maxPrice, minSize, maxSize, beds, baths, selectedHoods, selectedAmenities, furnishedOnly, verifiedOnly, sort]);
 
   useEffect(() => { setVisibleCount(9); }, [filtered]);
 
   const activeFilterCount =
     selectedTypes.length + selectedHoods.length + selectedAmenities.length +
-    (listing ? 1 : 0) + (minPrice ? 1 : 0) + (maxPrice ? 1 : 0) +
+    (listing ? 1 : 0) + (minPrice ? 1 : 0) + (maxPrice ? 1 : 0) + (minSize ? 1 : 0) + (maxSize ? 1 : 0) +
     (beds ? 1 : 0) + (baths ? 1 : 0) + (furnishedOnly ? 1 : 0) + (verifiedOnly ? 1 : 0);
 
   function clearAll() {
     setQ(""); setSelectedTypes([]); setListing(""); setMinPrice(""); setMaxPrice("");
-    setBeds(""); setBaths(""); setSelectedHoods([]); setSelectedAmenities([]);
+    setMinSize(""); setMaxSize(""); setBeds(""); setBaths(""); setSelectedHoods([]); setSelectedAmenities([]);
     setFurnishedOnly(false); setVerifiedOnly(false);
   }
 
@@ -157,6 +192,17 @@ export function PropertiesClient({ properties, neighborhoods, amenities, propert
           <input type="number" placeholder="Min" value={minPrice} onChange={(e) => setMinPrice(e.target.value)}
             className="w-1/2 px-3 py-2.5 bg-cream border border-ink/[0.08] text-sm font-body focus:outline-none focus:border-brass" />
           <input type="number" placeholder="Max" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)}
+            className="w-1/2 px-3 py-2.5 bg-cream border border-ink/[0.08] text-sm font-body focus:outline-none focus:border-brass" />
+        </div>
+      </div>
+
+      {/* Size range */}
+      <div>
+        <p className="text-[11px] font-body font-bold uppercase tracking-[0.15em] text-stone-400 mb-3">Size (m²)</p>
+        <div className="flex gap-2">
+          <input type="number" placeholder="Min" value={minSize} onChange={(e) => setMinSize(e.target.value)}
+            className="w-1/2 px-3 py-2.5 bg-cream border border-ink/[0.08] text-sm font-body focus:outline-none focus:border-brass" />
+          <input type="number" placeholder="Max" value={maxSize} onChange={(e) => setMaxSize(e.target.value)}
             className="w-1/2 px-3 py-2.5 bg-cream border border-ink/[0.08] text-sm font-body focus:outline-none focus:border-brass" />
         </div>
       </div>
@@ -267,7 +313,27 @@ export function PropertiesClient({ properties, neighborhoods, amenities, propert
             {q && <button onClick={() => setQ("")} className="text-stone-400 hover:text-ink text-sm">✕</button>}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Save Search Button */}
+            <SaveSearchButton
+              criteria={{
+                q: q || undefined,
+                propertyTypes: selectedTypes.length > 0 ? selectedTypes : undefined,
+                listingType: listing ? (listing as "sale" | "rent") : undefined,
+                minPrice: minPrice ? Number(minPrice) : undefined,
+                maxPrice: maxPrice ? Number(maxPrice) : undefined,
+                minSize: minSize ? Number(minSize) : undefined,
+                maxSize: maxSize ? Number(maxSize) : undefined,
+                bedrooms: beds ? Number(beds) : undefined,
+                bathrooms: baths ? Number(baths) : undefined,
+                neighborhoods: selectedHoods.length > 0 ? selectedHoods : undefined,
+                amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
+                furnished: furnishedOnly || undefined,
+                verified: verifiedOnly || undefined,
+              }}
+              resultCount={filtered.length}
+            />
+
             {/* Sort */}
             <select value={sort} onChange={(e) => setSort(e.target.value)}
               className="px-4 py-3.5 bg-cream border border-ink/[0.08] text-sm font-body text-graphite focus:outline-none appearance-none cursor-pointer pr-8"
